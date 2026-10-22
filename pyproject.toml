@@ -1,0 +1,10 @@
+[project]
+name = "SINT"
+version = "0.0.1"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "smacv2",
+]
+
+[tool.uv.sources]
+smacv2 = { git = "https://github.com/oxwhirl/smacv2.git" }
