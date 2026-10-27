@@ -1,0 +1,14 @@
+{
+    "scene": "terran",
+    "model": "Shared MLP Mini",
+    "algorithm": "IPPO",
+
+    "device": "cpu",
+
+    "train":{
+        "n_envs": 2,
+        "buffer_size": 1000
+    },
+
+    "render": "3D"
+}
