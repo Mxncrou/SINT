@@ -84,7 +84,7 @@ def train():
                   total_iters=-(-TRAINING_SIZE//(BUFFER_SIZE*N_ENVS))) 
     writer = SummaryWriter(os.path.join("runs", SCENE, MODEL, settings["algorithm"]), purge_step=0) 
 
-    observation_directory = envs.reset()
+    observation_dictionary = envs.reset()
 
     # ------------------------------Z-------------------------
     episode_reward = np.zeros(N_ENVS)
@@ -99,12 +99,12 @@ def train():
     for steps in pbar:
 
         with torch.no_grad():
-            dist, values = policy(torch.as_tensor(observation_directory["observations"],      device=DEVICE),
-                                  torch.as_tensor(observation_directory["available_actions"], device=DEVICE))
+            dist, values = policy(torch.as_tensor(observation_dictionary["observations"],      device=DEVICE),
+                                  torch.as_tensor(observation_dictionary["available_actions"], device=DEVICE))
             actions = dist.sample()
             log_probs = dist.log_prob(actions)
 
-            next_values = values.cpu().numpy() * observation_directory["alives"]
+            next_values = values.cpu().numpy() * observation_dictionary["alives"]
             buffer.next_values[buffer.ptr - 1][~truncated] = next_values[~truncated]
     
         if buffer.full:
@@ -131,15 +131,15 @@ def train():
         # ------------------------------Z-------------------------
         
         buffer.store(
-            observations=observation_directory["observations"],
-            available_actions=observation_directory["available_actions"],
+            observations=observation_dictionary["observations"],
+            available_actions=observation_dictionary["available_actions"],
             actions=actions.cpu(),
             log_probs=log_probs.cpu(),
             values=values.cpu(),
             rewards=step["reward"],
             terminated=step["terminated"] & ~step["truncated"],
             truncated=step["truncated"],
-            alives=observation_directory["alives"]
+            alives=observation_dictionary["alives"]
             )
 
         # ------------------------------Z-------------------------
@@ -151,7 +151,7 @@ def train():
             final_values = final_values.cpu().numpy() * final_observation["alives"]
             buffer.next_values[buffer.ptr - 1][truncated] = final_values[truncated]
 
-        observation_directory = next_observation
+        observation_dictionary = next_observation
         # ------------------------------Z-------------------------
 
     os.makedirs(PATH, exist_ok=True)
@@ -184,7 +184,7 @@ def evaluate():
         wins.append(info.get("battle_won", False))
         winrate = np.mean(wins)
 
-    print(f"Win rate: {winrate * 100:.2f}%", f" Uncertainty: {1.96 * np.sqrt((winrate*(1-winrate))/EVALUATION_LENGTH) * 100:.2f}")
+    print(f"Win rate: {winrate * 100:.2f}%", f" ±: {1.96 * np.sqrt((winrate*(1-winrate))/EVALUATION_LENGTH) * 100:.2f}%")
     env.close()
 
 def watch():
@@ -216,9 +216,7 @@ def watch():
                     time.sleep(1 / SPS)
 
     except KeyboardInterrupt:
-        env.close()
-        print("Actor Parameters", lookup_actor_params(policy))
-        print("Total Parameters", lookup_params(policy))
+        pass
 
     finally:
         env.close()

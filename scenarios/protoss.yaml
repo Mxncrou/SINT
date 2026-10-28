@@ -1,7 +1,7 @@
 env: sc2wrapped
 
 env_args:
-  continuing_episode: False
+  continuing_episode: True
   difficulty: "7"
   game_version: null
   map_name: "10gen_protoss"

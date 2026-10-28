@@ -1,4 +1,4 @@
-# SINT 1.0.3
+# SINT 1.0.2
 Soldier INTelligence — simple AI architectures and algorithms testing for SMACv2
 
 [SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focus on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.
@@ -82,12 +82,12 @@ SMACv2 propose by default 3 customizable scenario, each are in `scenarios/` and 
 
 
 # Results
-The following results are organised as it follows, a terran section, a protoss Section and a zerg section, covering every scenarios. This is useful to measure how "hard" a specific specie can be to play. Every model are organised in 3 category, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectfully ~45k and ~155k parameters. Results comes from `evaluate()` which run 320 episodes with a deterministic sampling.
+The following results are organised as it follows, a terran section, a protoss Section and a zerg section, covering every scenarios. This is useful to measure how "hard" a specific specie can be to play. Every model are organised in 3 category, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectfully ~45k and ~155k parameters. Results comes from `evaluate()` which run 320 episodes with a greedy action selection.
 
 
 | Model-Algorithms/Size | Mini | Base | Large               |
 |-----------------------|------|------|---------------------|
-| Shared MLP IPPO       |      |      | 🟥 24.38% $\pm$ 4.7%|
+| Shared MLP IPPO       |      |      |                     |
 
 
 # References

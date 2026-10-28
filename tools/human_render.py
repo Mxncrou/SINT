@@ -1,3 +1,4 @@
+# ------------------------------Z-------------------------
 import os
 
 os.environ["SDL_VIDEODRIVER"] = "x11"  # pygame's Wayland backend crashes on Hyprland
@@ -12,7 +13,6 @@ from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import raw_pb2 as r_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
-# ------------------------------Z-------------------------
 # SC2 keeps the bottom of the screen for its HUD (console). It is not drawn
 # in the rendered interface, so it shows up as a black band: we crop it.
 VIEW_HEIGHT_RATIO = 546 / 768
@@ -76,7 +76,6 @@ class HumanRender:
             controller.step_one_loop = controller.step
             def step(count=1):
                 for _ in range(count):
-                    print("loop")
                     controller.step_one_loop(1)
                     self.sc2_env._obs = controller.observe()
                     self._draw()

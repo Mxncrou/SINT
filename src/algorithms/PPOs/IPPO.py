@@ -69,10 +69,11 @@ class IPPO:
             for i in torch.randperm(len(actions), device=self.DEVICE).chunk(self.n_minibatches):
 
                 dist, V = self.policy(observations[i], available_actions[i]) # Run the new policy at each step
+                # r_t(theta) doesnt work as variable names cannot have parenthesis
                 rho = torch.exp(dist.log_prob(actions[i]) - log_probs_old[i])
                 
                 # For L_clip, L_vf and H we compute the average, 
-                # because the gradient of the average is equals to the average of all gradient 
+                # because the gradient of the average is equals to the average of all gradient
                 L_clip = torch.min(rho * A[i], rho.clamp(1 - self.epsilon, 1 + self.epsilon) * A[i]).mean() 
                 L_vf   = ((V - R[i]) ** 2).mean() 
                 H      = dist.entropy().mean()
@@ -86,7 +87,7 @@ class IPPO:
                 self.optimizer.zero_grad() # Delete old gradient
                 loss.backward()      # Compute new gradient
                 self.optimizer.step() # update the network
-                self.scheduler.step() 
 
+        self.scheduler.step()
         self.buffer.clear()
-        return {name: np.mean(values) for name, values in metrics.items()}
+        return {name: np.mean(scalar) for name, scalar in metrics.items()}
