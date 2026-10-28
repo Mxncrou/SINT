@@ -1,10 +1,11 @@
 [project]
 name = "SINT"
-version = "1.0.0"
+version = "1.0.1"
 requires-python = ">=3.10,<3.11"
 dependencies = [
     "pyyaml>=6.0.3",
     "smacv2",
+    "tensorboard>=2.20.0",
     "torch",
     "tqdm>=4.70.1",
 ]
@@ -17,3 +18,8 @@ torch = [{ index = "pytorch-cpu" }]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+[dependency-groups]
+dev = [
+    "matplotlib>=3.10.9",
+]

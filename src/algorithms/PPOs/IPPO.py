@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 
@@ -36,6 +37,13 @@ class IPPO:
         truncated         = self.buffer.truncated[..., None]
         done              = terminated | truncated
 
+        # metrics will be used to construct diagrams
+        metrics = {
+            "L_clip"  : [],
+            "L_vf"    : [],
+            "Entropy" : [],
+            "loss"    : [],
+        }
 
         # Delta is directly computed into A
         A = alives * (rewards + self.gamma * next_values * ~terminated - values)
@@ -69,6 +77,11 @@ class IPPO:
                 L_vf   = ((V - R[i]) ** 2).mean() 
                 H      = dist.entropy().mean()
                 loss   = -L_clip + self.c_1 * L_vf - self.c_2 * H
+
+                metrics["L_clip"].append(L_clip.item())
+                metrics["L_vf"].append(L_vf.item())
+                metrics["Entropy"].append(H.item())
+                metrics["loss"].append(loss.item())
                 
                 self.optimizer.zero_grad() # Delete old gradient
                 loss.backward()      # Compute new gradient
@@ -76,3 +89,4 @@ class IPPO:
                 self.scheduler.step() 
 
         self.buffer.clear()
+        return {name: np.mean(values) for name, values in metrics.items()}

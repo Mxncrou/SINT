@@ -1,12 +1,12 @@
 {
     "scene": "terran",
-    "model": "Shared MLP Mini",
+    "model": "Shared MLP Base",
     "algorithm": "IPPO",
 
     "device": "cpu",
 
     "train":{
-        "n_envs": 2,
+        "n_envs": 5,
         "buffer_size": 1000
     },
 

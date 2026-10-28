@@ -40,29 +40,22 @@ class SharedMLP(nn.Module):
 
 class SharedMLPMini(SharedMLP):
     def __init__(self, obs_dim, act_dim):
-        super().__init__(obs_dim, act_dim, d=256)
-
-
-class SharedMLPSmall(SharedMLP):
-    def __init__(self, obs_dim, act_dim):
-        super().__init__(obs_dim, act_dim, d=512)
+        super().__init__(obs_dim, act_dim, d=128)
 
 
 class SharedMLPBase(SharedMLP):
     def __init__(self, obs_dim, act_dim):
-        super().__init__(obs_dim, act_dim, d=1024)
+        super().__init__(obs_dim, act_dim, d=170)
 
 
 class SharedMLPLarge(SharedMLP):
     def __init__(self, obs_dim, act_dim):
-        super().__init__(obs_dim, act_dim, d=2048)
+        super().__init__(obs_dim, act_dim, d=256)
 
 
 def lookup_params(model):
-
     return sum(p.numel() for p in model.parameters())
 
 
 def lookup_actor_params(model):
-
     return lookup_params(model.actor) + lookup_params(model.shared)
