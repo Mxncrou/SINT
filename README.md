@@ -1,4 +1,4 @@
-# SINT 1.0.2
+# SINT 1.0.3
 Soldier INTelligence — simple AI architectures and algorithms testing for SMACv2
 
 [SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focus on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.

@@ -135,7 +135,7 @@ def train():
             available_actions=observation_dictionary["available_actions"],
             actions=actions.cpu(),
             log_probs=log_probs.cpu(),
-            values=values.cpu(),
+            values=values.cpu().numpy() * observation_dictionary["alives"],
             rewards=step["reward"],
             terminated=step["terminated"] & ~step["truncated"],
             truncated=step["truncated"],

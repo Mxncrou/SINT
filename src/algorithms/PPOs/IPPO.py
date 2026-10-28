@@ -46,7 +46,7 @@ class IPPO:
         }
 
         # Delta is directly computed into A
-        A = alives * (rewards + self.gamma * next_values * ~terminated - values)
+        A = (rewards + self.gamma * next_values * ~terminated - values)
         for t in reversed(range(len(A) - 1)):
             A[t] += self.gamma * self.lam * A[t + 1] * ~done[t]
 
