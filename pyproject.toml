@@ -1,6 +1,6 @@
 [project]
 name = "SINT"
-version = "1.0.3"
+version = "1.0.4"
 requires-python = ">=3.10,<3.11"
 dependencies = [
     "pyyaml>=6.0.3",
