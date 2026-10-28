@@ -64,6 +64,7 @@ def train():
 
     envs = ParallelRunner(partial(StarCraftCapabilityEnvWrapper, **ENV_ARGS), N_ENVS)
     env_info = envs.env_info
+    observation_dictionary = envs.reset()
 
     policy = MODELS[MODEL](env_info["obs_shape"], env_info["n_actions"]).to(DEVICE)
     buffer = RolloutBuffer.build(env_info, BUFFER_SIZE, N_ENVS)
@@ -83,8 +84,6 @@ def train():
                 # but it shouldnt be that bad as most models converge early.
                   total_iters=-(-TRAINING_SIZE//(BUFFER_SIZE*N_ENVS))) 
     writer = SummaryWriter(os.path.join("runs", SCENE, MODEL, settings["algorithm"]), purge_step=0) 
-
-    observation_dictionary = envs.reset()
 
     # ------------------------------Z-------------------------
     episode_reward = np.zeros(N_ENVS)
@@ -106,21 +105,7 @@ def train():
 
             next_values = values.cpu().numpy() * observation_dictionary["alives"]
             buffer.next_values[buffer.ptr - 1][~truncated] = next_values[~truncated]
-    
-        if buffer.full:
-            metrics = agent.update()
-            mer = np.mean(episode_rewards[-100:])
-            winrate = np.mean(wins[-100:])     
-            for mn, mv in metrics.items():
-                writer.add_scalar(f"{mn}", mv, steps)
-            writer.add_scalar("episode reward", mer, steps)
-            writer.add_scalar("winrate", winrate, steps)
 
-            pbar.set_postfix(episode_reward=f"{mer:.2f}",
-                             winrate=winrate,
-                             loss=metrics["loss"])
-
-        
         step, final_observation, next_observation = envs.step(actions.cpu().numpy())
 
         # ------------------------------Z-------------------------
@@ -129,7 +114,7 @@ def train():
         episode_reward[step["terminated"]] = 0
         wins.extend(step["won"][step["terminated"]])
         # ------------------------------Z-------------------------
-        
+
         buffer.store(
             observations=observation_dictionary["observations"],
             available_actions=observation_dictionary["available_actions"],
@@ -151,8 +136,28 @@ def train():
             final_values = final_values.cpu().numpy() * final_observation["alives"]
             buffer.next_values[buffer.ptr - 1][truncated] = final_values[truncated]
 
-        observation_dictionary = next_observation
         # ------------------------------Z-------------------------
+        observation_dictionary = next_observation
+
+        if buffer.full:
+            with torch.no_grad():
+                _, next_values = policy(torch.as_tensor(observation_dictionary["observations"],      device=DEVICE),
+                                        torch.as_tensor(observation_dictionary["available_actions"], device=DEVICE))
+            next_values = next_values.cpu().numpy() * observation_dictionary["alives"]
+            buffer.next_values[buffer.ptr - 1][~truncated] = next_values[~truncated]
+
+            metrics = agent.update()
+            mer = np.mean(episode_rewards[-100:])
+            winrate = np.mean(wins[-100:])
+            for mn, mv in metrics.items():
+                writer.add_scalar(f"{mn}", mv, steps)
+            writer.add_scalar("episode reward", mer, steps)
+            writer.add_scalar("winrate", winrate, steps)
+
+            pbar.set_postfix(episode_reward=f"{mer:.2f}",
+                             winrate=winrate,
+                             loss=metrics["loss"])
+        
 
     os.makedirs(PATH, exist_ok=True)
     torch.save(policy.state_dict(), os.path.join(PATH, MODEL_PARAMS_FILE))
@@ -182,9 +187,14 @@ def evaluate():
             _, terminated, info = env.step(actions)
 
         wins.append(info.get("battle_won", False))
-        winrate = np.mean(wins)
 
-    print(f"Win rate: {winrate * 100:.2f}%", f" ±: {1.96 * np.sqrt((winrate*(1-winrate))/EVALUATION_LENGTH) * 100:.2f}%")
+    # ------------------------------Z-------------------------
+    n, p, z = EVALUATION_LENGTH, np.mean(wins), 1.96
+    center = (p + z**2 / (2*n)) / (1 + z**2 / n)
+    half   = z / (1 + z**2 / n) * np.sqrt(p*(1 - p)/n + z**2 / (4*n**2))
+    print(f"Win rate: {p*100:.2f}%  IC 95% [{(center-half)*100:.2f}%, {(center+half)*100:.2f}%]")
+    # ------------------------------Z-------------------------
+
     env.close()
 
 def watch():

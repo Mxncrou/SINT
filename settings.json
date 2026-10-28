@@ -1,5 +1,5 @@
 {
-    "scene": "terran",
+    "scene": "protoss",
     "model": "Shared MLP Base",
     "algorithm": "IPPO",
 
