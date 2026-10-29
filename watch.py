@@ -51,7 +51,7 @@ def watch(seed):
     try:
         while True:
             env.reset()
-            
+
             terminated = False
             while not terminated:
                 with torch.no_grad():
@@ -70,4 +70,4 @@ def watch(seed):
 
 
 if __name__ == "__main__":
-    watch(7)
+    watch(42)
