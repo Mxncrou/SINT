@@ -4,12 +4,13 @@ import torch
 
 class IPPO:
     # We use lam instead of lambda as lambda keyword create a lambda function in python
-    def __init__(self, policy, buffer, learning_rate, gamma, lam, epsilon, c_1, c_2, epochs, n_minibatches, total_iters):
+    def __init__(self, policy, buffer, learning_rate, anneal_lr, max_grad_norm, gamma, lam, epsilon, c_1, c_2, epochs, n_minibatches, total_iters):
         self.policy = policy
         self.buffer = buffer
 
         self.optimizer = torch.optim.Adam(policy.parameters(), lr=learning_rate, eps=1e-5)
-        self.scheduler = torch.optim.lr_scheduler.LinearLR(self.optimizer, start_factor=1.0, end_factor=0.0, total_iters=total_iters)
+        self.scheduler = torch.optim.lr_scheduler.LinearLR(self.optimizer, start_factor=1.0, end_factor=0.0 if anneal_lr else 1.0, total_iters=total_iters)
+        self.max_grand_norm = max_grad_norm
 
         self.gamma = gamma
         self.lam = lam
@@ -39,11 +40,11 @@ class IPPO:
 
         # metrics will be used to construct diagrams
         metrics = {
-            "PPO/policy loss"       : [],
-            "PPO/value loss"        : [],
-            "PPO/entropy"           : [],
-            "PPO/approx kl"         : [],
-            "PPO/clip frac"         : []
+            "PPO/policy loss": [],
+            "PPO/value loss" : [],
+            "PPO/entropy"    : [],
+            "PPO/approx kl"  : [],
+            "PPO/clip frac"  : []
             }
 
         # Delta is directly computed into A
@@ -84,7 +85,7 @@ class IPPO:
                 
                 self.optimizer.zero_grad() # Delete old gradient
                 loss.backward()      # Compute new gradient
-                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), 10.0) # normalise to avoid too big gradient
+                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grand_norm)
                 self.optimizer.step() # update the network
 
                 with torch.no_grad():

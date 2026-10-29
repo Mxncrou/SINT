@@ -1,7 +1,9 @@
 Hparams:
   learning_rate: 5.0e-4
+  anneal_lr: True
+  max_grad_norm: 10
   gamma: 0.99
-  lam: 0.995 
+  lam: 0.95
   epsilon: 0.1
   c_1: 0.5
   c_2: 0.01

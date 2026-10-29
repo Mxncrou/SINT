@@ -28,10 +28,11 @@ ALGORITHMS = {"IPPO": IPPO}
 with open("settings.json") as s:
     settings = json.load(s)
 
-ALGORITHM = settings["algorithm"]
 MODEL     = settings["model"]
+ALGORITHM = settings["algorithm"]
+SCENE     = settings["scene"]
 
-with open(os.path.join("scenarios", settings["scene"] + ".yaml")) as s:
+with open(os.path.join("scenarios", SCENE + ".yaml")) as s:
     scenario = yaml.safe_load(s)
 
 DEVICE      = settings["device"]
@@ -137,7 +138,20 @@ def train(seed):
             # ------------------------------Z-------------------------
                 os.makedirs(os.path.join("checkpoints", PATH), exist_ok=True)
                 torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, f"seed_{seed}.pt"))
-    
+
+        last_evaluation = evaluate(policy, eval_envs, EVAL_SIZE * 10, DEVICE)
+        writer.add_hparams({"model"      : MODEL,
+                            "algorithm"  : ALGORITHM,
+                            "scene"      : SCENE,
+                            "seed"       : seed,
+                            "n_envs"     : N_ENVS,
+                            "buffer size": BUFFER_SIZE
+                            } | HPARAMS,
+                            {
+                            "hparams/greedy_winrate": last_evaluation["eval/winrate"],
+                            "hparams/episode reward": float(np.mean(rewards))
+                            }, run_name=".")
+
     finally:
         envs.close()
         pbar.close()
