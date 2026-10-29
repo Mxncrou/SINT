@@ -39,11 +39,11 @@ class IPPO:
 
         # metrics will be used to construct diagrams
         metrics = {
-            "policy loss"       : [],
-            "value loss"        : [],
-            "entropy"           : [],
-            "approx kl"         : [],
-            "clip frac"         : []
+            "PPO/policy loss"       : [],
+            "PPO/value loss"        : [],
+            "PPO/entropy"           : [],
+            "PPO/approx kl"         : [],
+            "PPO/clip frac"         : []
             }
 
         # Delta is directly computed into A
@@ -84,20 +84,20 @@ class IPPO:
                 
                 self.optimizer.zero_grad() # Delete old gradient
                 loss.backward()      # Compute new gradient
-                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), 0.5) # normalise to avoid too big gradient
+                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), 10.0) # normalise to avoid too big gradient
                 self.optimizer.step() # update the network
 
                 with torch.no_grad():
-                    metrics["value loss"].append(L_vf.item())
-                    metrics["policy loss"].append(-L_clip.item())
-                    metrics["entropy"].append(H.item())
-                    metrics["approx kl"].append(((rho - 1) - log_rho).mean().item())
-                    metrics["clip frac"].append(((rho - 1).abs() > self.epsilon).float().mean().item())
+                    metrics["PPO/value loss"].append(L_vf.item())
+                    metrics["PPO/policy loss"].append(-L_clip.item())
+                    metrics["PPO/entropy"].append(H.item())
+                    metrics["PPO/approx kl"].append(((rho - 1) - log_rho).mean().item())
+                    metrics["PPO/clip frac"].append(((rho - 1).abs() > self.epsilon).float().mean().item())
 
         learning_rate = self.scheduler.get_last_lr()[0]
         self.scheduler.step()
         self.buffer.clear()
         return {name: np.mean(scalar) for name, scalar in metrics.items()} | {
-            "learning rate"     : learning_rate,
-            "explained variance": explained_variance,
+            "PPO/learning rate"     : learning_rate,
+            "PPO/explained variance": explained_variance,
         }

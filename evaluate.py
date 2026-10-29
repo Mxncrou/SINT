@@ -27,4 +27,4 @@ def evaluate(policy, envs, n_episodes, device):
 
     p = float(np.mean(wins))
     low, high = wilson(p, len(wins))
-    return {"winrate": p, "winrate lower bound": low, "winrate upper bound": high}
+    return {"eval/winrate": p, "eval/lower bound": low, "eval/upper bound": high}

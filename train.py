@@ -71,7 +71,7 @@ def train(seed):
     # Our winrate approximation use a wilson interval.
     writer.add_custom_scalars({
     "Evaluation": {
-        "Greedy winrate (Wilson 95%)": ["Margin", ["winrate", "winrate lower bound", "winrate upper bound"]],
+        "Greedy winrate (Wilson 95%)": ["Margin", ["eval/winrate", "eval/lower bound", "eval/upper bound"]],
     }})
     
     try:
@@ -120,7 +120,7 @@ def train(seed):
 
             steps   = update * BUFFER_SIZE * N_ENVS
 
-            metrics = agent.update() | {"episode reward": np.mean(rewards), "winrate over last 100 episodes": np.mean(wins), "timeout rate": np.mean(timeouts)}
+            metrics = agent.update() | {"training/episode reward": np.mean(rewards), "training/winrate over last 100 episodes": np.mean(wins), "training/timeout rate": np.mean(timeouts)}
 
             # ------------------------------Z-------------------------
             if EVAL_EVERY and steps // EVAL_EVERY > (steps - BUFFER_SIZE * N_ENVS) // EVAL_EVERY:
@@ -130,7 +130,7 @@ def train(seed):
             for name, value in metrics.items():
                 writer.add_scalar(name, value, steps)
             
-            pbar.set_postfix(reward=f"{metrics['episode reward']:.2f}", winrate=f"{metrics['winrate over last 100 episodes']:.2f}")
+            pbar.set_postfix(reward=f"{metrics['training/episode reward']:.2f}", winrate=f"{metrics['training/winrate over last 100 episodes']:.2f}")
 
             # ------------------------------Z-------------------------
             if steps // SAVE_EVERY > (steps - BUFFER_SIZE * N_ENVS) // SAVE_EVERY or update == N_UPDATES:
