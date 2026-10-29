@@ -192,7 +192,7 @@ def evaluate():
     n, p, z = EVALUATION_LENGTH, np.mean(wins), 1.96
     center = (p + z**2 / (2*n)) / (1 + z**2 / n)
     half   = z / (1 + z**2 / n) * np.sqrt(p*(1 - p)/n + z**2 / (4*n**2))
-    print(f"Win rate: {p*100:.2f}%  IC 95% [{(center-half)*100:.2f}%, {(center+half)*100:.2f}%]")
+    print(f"Win rate: {p*100:.2f}%  CI 95% [{(center-half)*100:.2f}%, {(center+half)*100:.2f}%]")
     # ------------------------------Z-------------------------
 
     env.close()

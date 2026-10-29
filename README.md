@@ -1,4 +1,4 @@
-# SINT 1.0.5
+# SINT 1.0.6
 Soldier INTelligence — simple AI architectures and algorithms testing for SMACv2
 
 [SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focus on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.
@@ -70,24 +70,22 @@ You can then edit `settings.json` to customize your use.
 
 SMACv2 propose by default 3 customizable scenario, each are in `scenarios/` and each of them is a 5v5 (configurable) same race scenario. Each scenario can be a **surround** (allied unit spawn in the middle of the map and enemy units circle them) or **reflect** (allied unit spawn randomly and enemy units reflect their position).
 
-## Surrounded Images
-
-![2D Surrounded, terran 5v5](demo/2DSurrounded.png)
-![3D Surrounded, terran 5v5](demo/3DSurrounded.png)
-
-## Reflect Images
-
-![2D Reflect, terran 5v5](demo/2Dreflect.png)
-![3D Reflect, terran 5v5](demo/3Dreflect.png)
+| Surrounded                                     | SharedMLPBase (IPPO)                        |
+|:----------------------------------------------:|:-------------------------------------------:|
+| <img src="demo/2DSurrounded.png" width="75%"> | <img src="demo/2Dreflect.png" width="75%"> |
 
 
 # Results
-The following results are organised as it follows, a terran section, a protoss Section and a zerg section, covering every scenarios. This is useful to measure how "hard" a specific specie can be to play. Every model are organised in 3 category, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectfully ~45k and ~155k parameters. Results comes from `evaluate()` which run 320 episodes with a greedy action selection.
+The following results are organized as it follows, a terran section, a protoss Section and a zerg section, covering every scenario. This is useful to measure how "hard" a specific race can be to play. Models are grouped into 3 categories, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectively ~45k and ~155k parameters. Results come from `evaluate()` which run 320 episodes with a greedy action selection. In each cell, the winrate over 320 games is displayed as long with a 95% Wilson confidence interval.
+
+## Protoss
+
+| Model-Algorithms/Size | Mini | Base                        | Large                              |
+|-----------------------|------|-----------------------------|------------------------------------|
+| Shared MLP IPPO       |      | 🟨 50.94%, [45.48%, 56.37%] |                                    |
 
 
-| Model-Algorithms/Size | Mini | Base | Large               |
-|-----------------------|------|------|---------------------|
-| Shared MLP IPPO       |      |      |                     |
+**Interesting note on Shared MLP:** It is very interesting to see this first model. It is simple, no recurrent cell, no observation of the last action chosen and no learned vector for unit type, just a simple integer. Yet, the model behave as if it understand how to play depending on situations. Colossi stay behind, zealot tank and stalker lure enemy unit to move them away from the main fight. It is also interesting to note, that the model still strongly lose when it spawn at edges of the map where some eratic behaviour operate such as zealot running around.   
 
 
 # References
