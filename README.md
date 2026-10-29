@@ -1,14 +1,14 @@
-# SINT 1.0.6
+# SINT 2.0.0
 Soldier INTelligence — simple AI architectures and algorithms testing for SMACv2
 
-[SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focus on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.
+[SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focuses on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.
 
-Trained models are NOT given, please run `main.py` with `train()` first before uing `watch()` or `evaluate()`
+Trained models are NOT given, please run `train.py` first before using `watch.py`. You can `watch.py` as soon as you get a first model from the training (every ~100k steps).
 
 
 ## Instruction for reading
 
-- I. Some part of the code were written by AI, either to prevent the writter against error, because the code was redundant or because an AI had a good idea to implement. Such passage, are enclosed between two comment '# ...-----Z-----...'.
+- I. Some part of the code were written by AI, either to prevent the writer against error, because the code was redundant or because an AI had a good idea to implement. Such passage, are enclosed between two comment '# ...-----Z-----...'.
 - II. The terminology has been the object of a meticulous work. I have made every effort to never deviate from standard terminology without very serious reasons.
 - III. I sought to use rigorous and correct syntax without sacrificing the simplicity of the code. As much as possible, I have pointed out instances of notation abuse — without which any code risks becoming pedantic, slow, or even unreadable.
 - IV. programs where agents are trained, tested, etc... Are copied and adjusted from `random_agents.py`
@@ -68,24 +68,21 @@ You can then edit `settings.json` to customize your use.
 
 # The scenarios
 
-SMACv2 propose by default 3 customizable scenario, each are in `scenarios/` and each of them is a 5v5 (configurable) same race scenario. Each scenario can be a **surround** (allied unit spawn in the middle of the map and enemy units circle them) or **reflect** (allied unit spawn randomly and enemy units reflect their position).
+SMACv2 propose by default 3 customizable scenarios, each are in `scenarios/` and each of them is a 5v5 (configurable) same race scenario. Each scenario can be a **surround** (allied unit spawn in the middle of the map and enemy units circle them) or **reflect** (allied unit spawn randomly and enemy units reflect their position).
 
-| Surrounded                                     | SharedMLPBase (IPPO)                        |
-|:----------------------------------------------:|:-------------------------------------------:|
-| <img src="demo/2DSurrounded.png" width="75%"> | <img src="demo/2Dreflect.png" width="75%"> |
+| Surrounded                                    | Reflect                                    |
+|:---------------------------------------------:|:------------------------------------------:|
+| <img src="demo/2DSurrounded.png" width="100%"> | <img src="demo/2Dreflect.png" width="100%"> |
 
 
 # Results
-The following results are organized as it follows, a terran section, a protoss Section and a zerg section, covering every scenario. This is useful to measure how "hard" a specific race can be to play. Models are grouped into 3 categories, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectively ~45k and ~155k parameters. Results come from `evaluate()` which run 320 episodes with a greedy action selection. In each cell, the winrate over 320 games is displayed as long with a 95% Wilson confidence interval.
+The following results are organized as it follows, a terran section, a protoss Section and a zerg section, covering every scenario. This is useful to measure how "hard" a specific race can be to play. Models are grouped into 3 categories, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectively ~45k and ~155k parameters in their actor. Results come from `evaluate()` which run 32 episodes with a greedy action selection. In each cell, the winrate over 32 games is displayed as long with a 95% Wilson confidence interval.
 
 ## Protoss
 
 | Model-Algorithms/Size | Mini | Base                        | Large                              |
 |-----------------------|------|-----------------------------|------------------------------------|
-| Shared MLP IPPO       |      | 🟨 50.94%, [45.48%, 56.37%] |                                    |
-
-
-**Interesting note on Shared MLP:** It is very interesting to see this first model. It is simple, no recurrent cell, no observation of the last action chosen and no learned vector for unit type, just a simple integer. Yet, the model behave as if it understand how to play depending on situations. Colossi stay behind, zealot tank and stalker lure enemy unit to move them away from the main fight. It is also interesting to note, that the model still strongly lose when it spawn at edges of the map where some eratic behaviour operate such as zealot running around.   
+| Shared MLP IPPO       |      |                             |                                    |
 
 
 # References

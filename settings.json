@@ -5,9 +5,10 @@
 
     "device": "cpu",
 
-    "train":{
+    "training":{
         "n_envs": 8,
-        "buffer_size": 400
+        "buffer_size": 400,
+        "seeds": [42, 67, 69]
     },
 
     "render": "3D"
