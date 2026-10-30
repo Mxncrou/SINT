@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 from collections import deque
@@ -52,6 +53,7 @@ PATH        = os.path.join(settings["scene"], MODEL, ALGORITHM)
 with open(os.path.join("src", "algorithms", settings["algorithm"] + ".yaml")) as s:
     HPARAMS = yaml.safe_load(s)["Hparams"]
 
+HPARAM_PATH = hashlib.sha256(yaml.dump(HPARAMS, sort_keys=True).encode()).hexdigest()[:8]
 
 def forward(policy, observation):
 
@@ -68,7 +70,7 @@ def train(seed):
     envs      = ParallelRunner(MAKE_ENV, N_ENVS)
     eval_envs = ParallelRunner(MAKE_ENV, 2) if EVAL_EVERY else None
     
-    writer    = SummaryWriter(os.path.join("runs", PATH, f"seed_{seed}"))
+    writer    = SummaryWriter(os.path.join("runs", PATH, HPARAM_PATH, f"seed_{seed}"))
     # Our winrate approximation use a wilson interval.
     writer.add_custom_scalars({
     "Evaluation": {
@@ -136,8 +138,8 @@ def train(seed):
             # ------------------------------Z-------------------------
             if steps // SAVE_EVERY > (steps - BUFFER_SIZE * N_ENVS) // SAVE_EVERY or update == N_UPDATES:
             # ------------------------------Z-------------------------
-                os.makedirs(os.path.join("checkpoints", PATH), exist_ok=True)
-                torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, f"seed_{seed}.pt"))
+                os.makedirs(os.path.join("checkpoints", PATH, HPARAM_PATH), exist_ok=True)
+                torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, HPARAM_PATH, f"seed_{seed}.pt"))
 
         last_evaluation = evaluate(policy, eval_envs, EVAL_SIZE * 10, DEVICE)
         writer.add_hparams({"model"      : MODEL,
@@ -151,6 +153,7 @@ def train(seed):
                             "hparams/greedy_winrate": last_evaluation["eval/winrate"],
                             "hparams/episode reward": float(np.mean(rewards))
                             }, run_name=".")
+        torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, HPARAM_PATH, f"seed_{seed}.pt"))
 
     finally:
         envs.close()
@@ -161,5 +164,5 @@ def train(seed):
 
 
 if __name__ == "__main__":
-    for seed in settings["training"]["seeds"]:
+    for seed in settings["training"]["seeds"][1:]:
         train(seed)

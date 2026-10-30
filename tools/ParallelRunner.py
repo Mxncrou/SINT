@@ -1,5 +1,6 @@
 # ------------------------------Z-------------------------
 import multiprocessing as mp
+import traceback
 
 import numpy as np
 
@@ -19,19 +20,19 @@ class ParallelRunner:
         self.n_envs = n_envs
 
         # One pipe per environment: the main process keeps one end, the worker gets the other
-        self.remotes, worker_remotes = zip(*[mp.Pipe() for _ in range(self.n_envs)])
-        self.processes = [
-            mp.Process(target=ParallelRunner.worker, args=(w, make_env), daemon=True)
-            for w in worker_remotes
-        ]
-
-        for p in self.processes:
+        self.remotes, self.processes = [], []
+        for _ in range(self.n_envs):
+            remote, worker_remote = mp.Pipe()
+            p = mp.Process(target=ParallelRunner.worker, args=(worker_remote, make_env), daemon=True)
             p.start()
-        for w in worker_remotes:
-            w.close()  # the main process only keeps its own ends
+            # Closed before the next fork, so no other worker inherits this end:
+            # if this worker dies, recv() raises EOFError instead of waiting forever
+            worker_remote.close()
+            self.remotes.append(remote)
+            self.processes.append(p)
 
         self.remotes[0].send(("env_info", None))
-        self.env_info = self.remotes[0].recv()
+        self.env_info = ParallelRunner.receive(self.remotes[0])
 
     @staticmethod
     def observe(env):
@@ -80,9 +81,22 @@ class ParallelRunner:
                     remote.send((step, final, ob))
                 elif cmd == "close":
                     break
+        except Exception: 
+            remote.send(("error", traceback.format_exc()))  # let the main process raise instead of hanging
+            raise
         finally:
             env.close()  # always close SC2, even after an error
             remote.close()
+
+    @staticmethod
+    def receive(remote):
+        """
+        Receive one answer, raising if the worker crashed.
+        """
+        answer = remote.recv()
+        if isinstance(answer, tuple) and answer[0] == "error":
+            raise RuntimeError(f"Environment worker crashed:\n{answer[1]}")
+        return answer
 
     @staticmethod
     def stack(dicts):
@@ -98,7 +112,7 @@ class ParallelRunner:
         """
         for r in self.remotes:
             r.send(("reset", None))
-        return ParallelRunner.stack([r.recv() for r in self.remotes])
+        return ParallelRunner.stack([ParallelRunner.receive(r) for r in self.remotes])
 
     def step(self, actions):
         """
@@ -112,12 +126,18 @@ class ParallelRunner:
         """
         for r, a in zip(self.remotes, actions):
             r.send(("step", a))
-        steps, finals, obs = zip(*[r.recv() for r in self.remotes])
+        steps, finals, obs = zip(*[ParallelRunner.receive(r) for r in self.remotes])
         return ParallelRunner.stack(steps), ParallelRunner.stack(finals), ParallelRunner.stack(obs)
 
     def close(self):
-        for r in self.remotes:
-            r.send(("close", None))
+        for r, p in zip(self.remotes, self.processes):
+            if p.is_alive():
+                try:
+                    r.send(("close", None))
+                except (BrokenPipeError, EOFError):
+                    pass
         for p in self.processes:
-            p.join()
+            p.join(timeout=30)
+            if p.is_alive():
+                p.terminate()
 # ------------------------------Z-------------------------
