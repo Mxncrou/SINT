@@ -34,7 +34,7 @@ RENDER_MODE = settings["render"]
 FPS         = 60   # For 3D
 SPS         = 2.8  # For 2D
 RUN_PATH    = os.path.join(settings["scene"], settings["model"], settings["algorithm"])
-
+HPARAM_PATH = "185f5ba4" # Manual, I don't know how to do it dynamically.
 
 def watch(seed):
 
@@ -46,7 +46,7 @@ def watch(seed):
     info = env.get_env_info()
 
     policy = MODELS[settings["model"]](info["obs_shape"], info["n_actions"]).to(DEVICE)
-    policy.load_state_dict(torch.load(os.path.join("checkpoints", RUN_PATH, f"seed_{seed}.pt"), map_location=DEVICE))
+    policy.load_state_dict(torch.load(os.path.join("checkpoints", RUN_PATH, HPARAM_PATH, f"seed_{seed}.pt"), map_location=DEVICE))
 
     try:
         while True:

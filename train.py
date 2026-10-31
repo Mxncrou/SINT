@@ -141,7 +141,7 @@ def train(seed):
                 os.makedirs(os.path.join("checkpoints", PATH, HPARAM_PATH), exist_ok=True)
                 torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, HPARAM_PATH, f"seed_{seed}.pt"))
 
-        last_evaluation = evaluate(policy, eval_envs, EVAL_SIZE * 10, DEVICE)
+        last_evaluation = evaluate(policy, eval_envs, EVAL_SIZE * 100, DEVICE)
         writer.add_hparams({"model"      : MODEL,
                             "algorithm"  : ALGORITHM,
                             "scene"      : SCENE,
@@ -164,5 +164,6 @@ def train(seed):
 
 
 if __name__ == "__main__":
-    for seed in settings["training"]["seeds"][1:]:
+    
+    for seed in settings["training"]["seeds"]:
         train(seed)
