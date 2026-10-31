@@ -16,13 +16,21 @@ from evaluate import evaluate
 from src.algorithms.buffer import RolloutBuffer
 from src.algorithms.IPPO import IPPO
 from src.models.MLPs.SharedMLPs import SharedMLPBase, SharedMLPLarge, SharedMLPMini
+from src.models.Transformers.SharedTransformers import (
+    SharedTransformerBase,
+    SharedTransformerLarge,
+    SharedTransformerMini,
+)
 from tools.ParallelRunner import ParallelRunner
 
 logging.set_verbosity(logging.WARNING)
 
-MODELS     = {"Shared MLP Mini": SharedMLPMini,
-              "Shared MLP Base": SharedMLPBase,
-              "Shared MLP Large": SharedMLPLarge}
+MODELS     = {"Shared MLP Mini"         : SharedMLPMini,
+              "Shared MLP Base"         : SharedMLPBase,
+              "Shared MLP Large"        : SharedMLPLarge,
+              "Shared Transformer Mini" : SharedTransformerMini,
+              "Shared Transformer Base" : SharedTransformerBase,
+              "Shared Transformer Large": SharedTransformerLarge}
 
 ALGORITHMS = {"IPPO": IPPO}
 

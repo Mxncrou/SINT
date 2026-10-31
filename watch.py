@@ -16,13 +16,21 @@ from src.models.MLPs.SharedMLPs import (
     SharedMLPLarge,
     SharedMLPMini,
 )
+from src.models.Transformers.SharedTransformers import (
+    SharedTransformerBase,
+    SharedTransformerLarge,
+    SharedTransformerMini,
+)
 from tools.human_render import HumanRender
 
 logging.set_verbosity(logging.WARNING)
 
-MODELS = {"Shared MLP Mini": SharedMLPMini,
-          "Shared MLP Base": SharedMLPBase,
-          "Shared MLP Large": SharedMLPLarge}
+MODELS = {"Shared MLP Mini"         : SharedMLPMini,
+          "Shared MLP Base"         : SharedMLPBase,
+          "Shared MLP Large"        : SharedMLPLarge,
+          "Shared Transformer Mini" : SharedTransformerMini,
+          "Shared Transformer Base" : SharedTransformerBase,
+          "Shared Transformer Large": SharedTransformerLarge}
 
 with open("settings.json") as s:
     settings = json.load(s)

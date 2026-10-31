@@ -1,6 +1,6 @@
 {
     "scene": "protoss",
-    "model": "Shared MLP Base",
+    "model": "Shared Transformer Base",
     "algorithm": "IPPO",
 
     "device": "cpu",

@@ -1,4 +1,4 @@
-# SINT 2.0.5
+# SINT 2.1.0
 Soldier INTelligence — simple AI architectures and algorithms testing for SMACv2
 
 [SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focuses on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.
@@ -73,6 +73,8 @@ SMACv2 propose by default 3 customizable scenarios, each are in `scenarios/` and
 | Surrounded                                    | Reflect                                    |
 |:---------------------------------------------:|:------------------------------------------:|
 | <img src="demo/2DSurrounded.png" width="100%"> | <img src="demo/2Dreflect.png" width="100%"> |
+
+**Small note on Terran:** I will not test Terran (for now). Terran teams can include medivacs, a unit that heal an ally instead of attacking an enemy. SMACv2 indexes these heal actions by the target’s absolute agent ID, while each agent’s observation lists its allies in ID order skipping itself and does not include its own ID. A medivac cannot know which action heals which ally (the mapping shifts by one depending on its own unknown ID).
 
 
 # Results
