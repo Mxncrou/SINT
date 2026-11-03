@@ -70,22 +70,30 @@ You can then edit `settings.json` to customize your use.
 
 SMACv2 propose by default 3 customizable scenarios, each are in `scenarios/` and each of them is a 5v5 (configurable) same race scenario. Each scenario can be a **surround** (allied unit spawn in the middle of the map and enemy units circle them) or **reflect** (allied unit spawn randomly and enemy units reflect their position).
 
-| Surrounded                                    | Reflect                                    |
-|:---------------------------------------------:|:------------------------------------------:|
-| <img src="demo/2DSurrounded.png" width="100%"> | <img src="demo/2Dreflect.png" width="100%"> |
+| Surround                                       | Reflect                                      |
+|:----------------------------------------------:|:--------------------------------------------:|
+| <img src="demo/2DSurrounded.png" width="100%"> | <img src="demo/2Dreflect.png" width="100%">  |
 
 **Small note on Terran:** I will not test Terran (for now). Terran teams can include medivacs, a unit that heal an ally instead of attacking an enemy. SMACv2 indexes these heal actions by the target’s absolute agent ID, while each agent’s observation lists its allies in ID order skipping itself and does not include its own ID. A medivac cannot know which action heals which ally (the mapping shifts by one depending on its own unknown ID).
 
 
 # Results
-The following results are organized as it follows, a terran section, a protoss Section and a zerg section, covering every scenario. This is useful to measure how "hard" a specific race can be to play. Models are grouped into 3 categories, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectively ~45k and ~155k parameters in their actor. Results come from `evaluate()` which run 32 episodes with a greedy action selection. In each cell, the winrate over 32 games is displayed as long with a 95% Wilson confidence interval.
+The following results are organized as it follows, a terran section, a protoss Section and a zerg section, covering every scenario. This is useful to measure how "hard" a specific race can be to play. Models are grouped into 3 categories, *Base* with around ~75k parameters in the actor, *Mini* and *Large* with respectively ~45k and ~155k parameters in their actor. Results are tested over 3200 episode which on average give ~$\pm$ 1.7%, averaged over 3 seeds, it is also given their variance.
 
 ## Protoss
 
-| Model-Algorithms/Size | Mini | Base                        | Large                              |
-|-----------------------|------|-----------------------------|------------------------------------|
-| Shared MLP IPPO       |      |                             |                                    |
+### Table
 
+| Model-Algorithms/Size   | Mini | Base                        | Large                              |
+|-------------------------|------|-----------------------------|------------------------------------|
+| Shared MLP IPPO         |      | 🟨 $54.18$%$_{2.99}$        |                                    |
+| Shared Transformer IPPO |      | 🟩 $72.83$%$_{0.7}$         |                                    |
+
+### Some graphs
+
+| Rewards/episode                                             | Winrate                                                      |
+|:-----------------------------------------------------------:|:------------------------------------------------------------:|
+| <img src="demo/graphs/rewards_comparison.png" width="100%"> | <img src="demo/graphs/winrate_comparison.png" width="100%">  |
 
 # References
 This project uses the SMACv2 benchmark [1].

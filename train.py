@@ -158,8 +158,7 @@ def train(seed):
                             "buffer size": BUFFER_SIZE
                             } | HPARAMS,
                             {
-                            "hparams/greedy_winrate": last_evaluation["eval/winrate"],
-                            "hparams/episode reward": float(np.mean(rewards))
+                            "greedy winrate": last_evaluation["eval/winrate"],
                             }, run_name=".")
         torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, HPARAM_PATH, f"seed_{seed}.pt"))
 
@@ -172,6 +171,6 @@ def train(seed):
 
 
 if __name__ == "__main__":
-    
+
     for seed in settings["training"]["seeds"]:
         train(seed)
