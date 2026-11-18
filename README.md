@@ -1,4 +1,4 @@
-# SINT 2.1.0
+# SINT
 Soldier INTelligence — simple AI architectures and algorithms testing for SMACv2
 
 [SMACv2](https://github.com/oxwhirl/smacv2) is a benchmark for research in the field of cooperative multi-agent reinforcement learning. It focuses on decentralised micromanagement scenarios in [StarCraft II](https://starcraft2.blizzard.com/en-gb/), rather than the full game. It makes use of Blizzard’s StarCraft II Machine Learning API as well as Deepmind’s PySC2.
@@ -86,14 +86,15 @@ The following results are organized as it follows, a terran section, a protoss S
 
 | Model-Algorithms/Size   | Mini | Base                        | Large                              |
 |-------------------------|------|-----------------------------|------------------------------------|
-| Shared MLP IPPO         |      | 🟨 $54.18$%$_{2.99}$        |                                    |
-| Shared Transformer IPPO |      | 🟩 $72.83$%$_{0.7}$         |                                    |
+| Shared MLP IPPO         |      | 🟨 $54.18_{2.99}$%        |                                    |
+| Separated MLP IPPO      |      | 🟩 $65.42_{1.21}$%        |                                    |
+| Shared Transformer IPPO |      | 🟩 $72.83_{0.7}$%         |                                    |
 
 ### Some graphs
 
 | Rewards/episode                                             | Winrate                                                      |
 |:-----------------------------------------------------------:|:------------------------------------------------------------:|
-| <img src="demo/graphs/rewards_comparison.png" width="100%"> | <img src="demo/graphs/winrate_comparison.png" width="100%">  |
+| <img src="demo/graphs/Reward comparison 3 models.png" width="100%"> | <img src="demo/graphs/Winrate comparison 3 models.png" width="100%">  |
 
 # References
 This project uses the SMACv2 benchmark [1].

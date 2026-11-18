@@ -6,7 +6,7 @@ import numpy as np
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
 ROOT = Path(__file__).resolve().parent.parent / "runs" / "protoss"
-TAG = "training/episode reward"
+TAG = "eval/winrate"
 SMOOTH = 0.9
 
 
@@ -52,8 +52,8 @@ for run_dir in sorted(ROOT.glob("*/*/*")):          # <model>/<algo>/<hash>
     ax.fill_between(grid, mean - std, mean + std, color=line.get_color(), alpha=0.2)
 
 ax.set_xlabel("Environment steps")
-ax.set_ylabel("Avrage rewards per episodes")
-ax.set_ylim(0, 20)            # remove if winrate is in %, not [0, 1]
+ax.set_ylabel("Greedy winrate evaluation")
+ax.set_ylim(0, 1)            # remove if winrate is in %, not [0, 1]
 ax.grid(alpha=0.3)
 ax.legend()
 ax.set_title(f"Mean ± std (EMA smoothing = {SMOOTH})")

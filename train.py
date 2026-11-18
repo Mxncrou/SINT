@@ -15,6 +15,11 @@ from tqdm import tqdm
 from evaluate import evaluate
 from src.algorithms.buffer import RolloutBuffer
 from src.algorithms.IPPO import IPPO
+from src.models.MLPs.SeparatedMLPs import (
+    SeparatedMLPBase,
+    SeparatedMLPLarge,
+    SeparatedMLPMini,
+)
 from src.models.MLPs.SharedMLPs import SharedMLPBase, SharedMLPLarge, SharedMLPMini
 from src.models.Transformers.SharedTransformers import (
     SharedTransformerBase,
@@ -28,6 +33,9 @@ logging.set_verbosity(logging.WARNING)
 MODELS     = {"Shared MLP Mini"         : SharedMLPMini,
               "Shared MLP Base"         : SharedMLPBase,
               "Shared MLP Large"        : SharedMLPLarge,
+              "Separated MLP Mini"         : SeparatedMLPMini,
+              "Separated MLP Base"         : SeparatedMLPBase,
+              "Separated MLP Large"        : SeparatedMLPLarge,
               "Shared Transformer Mini" : SharedTransformerMini,
               "Shared Transformer Base" : SharedTransformerBase,
               "Shared Transformer Large": SharedTransformerLarge}

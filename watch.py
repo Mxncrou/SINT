@@ -11,6 +11,11 @@ import yaml
 from absl import logging
 from smacv2.env.starcraft2.wrapper import StarCraftCapabilityEnvWrapper
 
+from src.models.MLPs.SeparatedMLPs import (
+    SeparatedMLPBase,
+    SeparatedMLPLarge,
+    SeparatedMLPMini,
+)
 from src.models.MLPs.SharedMLPs import (
     SharedMLPBase,
     SharedMLPLarge,
@@ -28,6 +33,9 @@ logging.set_verbosity(logging.WARNING)
 MODELS = {"Shared MLP Mini"         : SharedMLPMini,
           "Shared MLP Base"         : SharedMLPBase,
           "Shared MLP Large"        : SharedMLPLarge,
+          "Separated MLP Mini"      : SeparatedMLPMini,
+          "Separated MLP Base"      : SeparatedMLPBase,
+          "Separated MLP Large"      : SeparatedMLPLarge,
           "Shared Transformer Mini" : SharedTransformerMini,
           "Shared Transformer Base" : SharedTransformerBase,
           "Shared Transformer Large": SharedTransformerLarge}
