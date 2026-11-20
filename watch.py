@@ -1,15 +1,17 @@
 import os
 import time
 
-os.environ["SDL_VIDEODRIVER"] = "x11"  # pygame's Wayland backend crashes on Hyprland
-
-import json
-
 import numpy as np
 import torch
 import yaml
 from absl import logging
 from smacv2.env.starcraft2.wrapper import StarCraftCapabilityEnvWrapper
+
+# ------------------------------Z-------------------------
+from pysc2.lib import remote_controller as rc
+_step = rc.RemoteController.step
+rc.RemoteController.step = lambda self, count=1: [(_step(self, 1), time.sleep(1 / 22.4)) for _ in range(count)]
+# ------------------------------Z-------------------------
 
 from src.models.MLPs.SeparatedMLPs import (
     SeparatedMLPBase,
@@ -26,7 +28,6 @@ from src.models.Transformers.SharedTransformers import (
     SharedTransformerLarge,
     SharedTransformerMini,
 )
-from tools.human_render import HumanRender
 
 logging.set_verbosity(logging.WARNING)
 
@@ -35,33 +36,26 @@ MODELS = {"Shared MLP Mini"         : SharedMLPMini,
           "Shared MLP Large"        : SharedMLPLarge,
           "Separated MLP Mini"      : SeparatedMLPMini,
           "Separated MLP Base"      : SeparatedMLPBase,
-          "Separated MLP Large"      : SeparatedMLPLarge,
+          "Separated MLP Large"     : SeparatedMLPLarge,
           "Shared Transformer Mini" : SharedTransformerMini,
           "Shared Transformer Base" : SharedTransformerBase,
           "Shared Transformer Large": SharedTransformerLarge}
 
-with open("settings.json") as s:
-    settings = json.load(s)
+with open("config.yaml") as s:
+    settings = yaml.safe_load(s)
 with open(os.path.join("scenarios", settings["scene"] + ".yaml")) as s:
     scenario = yaml.safe_load(s)
 
 DEVICE      = settings["device"]
-RENDER_MODE = settings["render"]
-FPS         = 60   # For 3D
-SPS         = 2.8  # For 2D
-RUN_PATH    = os.path.join(settings["scene"], settings["model"], settings["algorithm"])
-HPARAM_PATH = "185f5ba4" # Manual, I don't know how to do it dynamically.
+RUN_PATH    = os.path.join(settings["scene"], settings["agent"]["model"], settings["agent"]["algorithm"])
+HPARAM_PATH = "d68d39a6" # Manual, I don't know how to do it dynamically.
 
 def watch(seed):
 
-    env = StarCraftCapabilityEnvWrapper(**scenario["env_args"])
-    
-    if RENDER_MODE == "3D":
-        env = HumanRender(env, fps=FPS)  # must wrap before the first reset()
-    
+    env = StarCraftCapabilityEnvWrapper(**scenario["env_args"])    
     info = env.get_env_info()
 
-    policy = MODELS[settings["model"]](info["obs_shape"], info["n_actions"]).to(DEVICE)
+    policy = MODELS[settings["agent"]["model"]](info["obs_shape"], info["n_actions"]).to(DEVICE)
     policy.load_state_dict(torch.load(os.path.join("checkpoints", RUN_PATH, HPARAM_PATH, f"seed_{seed}.pt"), map_location=DEVICE))
 
     try:
@@ -74,10 +68,8 @@ def watch(seed):
                     dist, _ = policy(torch.as_tensor(np.array(env.get_obs()), device=DEVICE),
                                      torch.as_tensor(np.array(env.get_avail_actions(), dtype=bool), device=DEVICE))
                 _, terminated, info = env.step(dist.probs.argmax(-1).cpu().numpy())  # greedy
-
-                if RENDER_MODE == "2D":
-                    env.render()
-                    time.sleep(1 / SPS)
+                
+                time.sleep(1/22.15)
 
     except KeyboardInterrupt:
         pass

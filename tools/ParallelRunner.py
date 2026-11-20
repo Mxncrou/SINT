@@ -3,6 +3,7 @@ import multiprocessing as mp
 import traceback
 
 import numpy as np
+import os, tempfile
 
 
 class ParallelRunner:
@@ -44,11 +45,12 @@ class ParallelRunner:
         return {
             "observations": np.array(env.get_obs(), dtype=np.float32),
             "available_actions": np.array(env.get_avail_actions(), dtype=bool),
-            "alives": np.array([env.get_unit_by_id(i).health > 0 for i in range(env.n_agents)]),
+            "alive": np.array([env.get_unit_by_id(i).health > 0 for i in range(env.n_agents)]),
         }
 
     @staticmethod
     def worker(remote, make_env):
+        os.environ["TEMP"] = os.environ["TMP"] = tempfile.mkdtemp(prefix="sc2_")
         """
         Run one environment in its own process: wait for an order, execute it, answer.
         Args:

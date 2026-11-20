@@ -1,5 +1,4 @@
 import hashlib
-import json
 import os
 from collections import deque
 from functools import partial
@@ -42,11 +41,11 @@ MODELS     = {"Shared MLP Mini"         : SharedMLPMini,
 
 ALGORITHMS = {"IPPO": IPPO}
 
-with open("settings.json") as s:
-    settings = json.load(s)
+with open(os.path.join("config.yaml")) as s:
+    settings = yaml.safe_load(s)
 
-MODEL     = settings["model"]
-ALGORITHM = settings["algorithm"]
+MODEL     = settings["agent"]["model"]
+ALGORITHM = settings["agent"]["algorithm"]
 SCENE     = settings["scene"]
 
 with open(os.path.join("scenarios", SCENE + ".yaml")) as s:
@@ -57,8 +56,8 @@ DEVICE      = settings["device"]
 MAKE_ENV    = partial(StarCraftCapabilityEnvWrapper, **scenario["env_args"])
 N_ENVS      = settings["training"]["n_envs"]
 
-BUFFER_SIZE = settings["training"]["buffer_size"]
-N_UPDATES   = -(-scenario["t_max"] // (BUFFER_SIZE * N_ENVS))
+N_STEPS = settings["training"]["n_steps"]
+N_UPDATES   = -(-(scenario["t_max"]) // (N_STEPS * N_ENVS))
 
 
 EVAL_EVERY  = scenario["test_interval"]
@@ -66,7 +65,7 @@ SAVE_EVERY  = 100_000
 EVAL_SIZE   = scenario["test_nepisode"]
 PATH        = os.path.join(settings["scene"], MODEL, ALGORITHM)
 
-with open(os.path.join("src", "algorithms", settings["algorithm"] + ".yaml")) as s:
+with open(os.path.join("src", "algorithms", settings["agent"]["algorithm"] + ".yaml")) as s:
     HPARAMS = yaml.safe_load(s)["Hparams"]
 
 HPARAM_PATH = hashlib.sha256(yaml.dump(HPARAMS, sort_keys=True).encode()).hexdigest()[:8]
@@ -76,7 +75,7 @@ def forward(policy, observation):
     with torch.no_grad():
         dist, values = policy(torch.as_tensor(observation["observations"],      device=DEVICE),
                               torch.as_tensor(observation["available_actions"], device=DEVICE))
-    return dist, values.cpu().numpy() * observation["alives"] # Value(dead agent) is meaningless
+    return dist, values.cpu().numpy() * observation["alive"] # Value(dead agent) is meaningless
 
 
 def train(seed):
@@ -94,16 +93,16 @@ def train(seed):
     }})
     
     try:
-        info   = envs.env_info
+        info = envs.env_info
         obs  = envs.reset()
 
-        policy = MODELS[MODEL](info["obs_shape"], info["n_actions"]).to(DEVICE)
-        buffer = RolloutBuffer.build(info, BUFFER_SIZE, N_ENVS)
-        agent  = ALGORITHMS[ALGORITHM](policy, buffer, total_iters=N_UPDATES, **HPARAMS)
+        policy   = MODELS[MODEL](info["obs_shape"], info["n_actions"]).to(DEVICE)
+        buffer   = RolloutBuffer.build(info, N_STEPS, N_ENVS)
+        learner  = ALGORITHMS[ALGORITHM](policy, buffer, total_iters=N_UPDATES, **HPARAMS)
 
-        rewards, wins, timeouts, ep_reward = deque(maxlen=100), deque(maxlen=100), deque(maxlen=100), np.zeros(N_ENVS)
+        returns, wins, timeouts, ep_return = deque(maxlen=100), deque(maxlen=100), deque(maxlen=100), np.zeros(N_ENVS)
 
-        pbar = tqdm(total=N_UPDATES * BUFFER_SIZE * N_ENVS, unit="step", unit_scale=True, dynamic_ncols=True)
+        pbar = tqdm(total=N_UPDATES * N_STEPS * N_ENVS, unit="step", unit_scale=True, dynamic_ncols=True)
         for update in range(1, N_UPDATES + 1):
 
             dist, values = forward(policy, obs)
@@ -118,7 +117,7 @@ def train(seed):
                              rewards           = step["reward"], 
                              terminated        = step["terminated"] & ~step["truncated"],
                              truncated         = step["truncated"], 
-                             alives            = obs["alives"])
+                             alive             = obs["alive"])
 
                 obs, (dist, values) = next_obs, forward(policy, next_obs)
                 buffer.next_values[buffer.ptr - 1] = values
@@ -129,30 +128,30 @@ def train(seed):
                     buffer.next_values[buffer.ptr - 1][step["truncated"]] = forward(policy, final)[1][step["truncated"]]
 
                 
-                ep_reward += step["reward"]
-                rewards.extend(ep_reward[step["terminated"]])
+                ep_return += step["reward"]
+                returns.extend(ep_return[step["terminated"]])
                 wins.extend(step["won"][step["terminated"]])
                 timeouts.extend(step["truncated"][step["terminated"]])
-                ep_reward[step["terminated"]] = 0
+                ep_return[step["terminated"]] = 0
 
                 pbar.update(N_ENVS)
 
-            steps   = update * BUFFER_SIZE * N_ENVS
+            steps   = update * N_STEPS * N_ENVS
 
-            metrics = agent.update() | {"training/episode reward": np.mean(rewards), "training/winrate over last 100 episodes": np.mean(wins), "training/timeout rate": np.mean(timeouts)}
+            metrics = learner.update() | {"training/episode return": np.mean(returns), "training/winrate over last 100 episodes": np.mean(wins), "training/timeout rate": np.mean(timeouts)}
 
             # ------------------------------Z-------------------------
-            if EVAL_EVERY and steps // EVAL_EVERY > (steps - BUFFER_SIZE * N_ENVS) // EVAL_EVERY:
+            if EVAL_EVERY and steps // EVAL_EVERY > (steps - N_STEPS * N_ENVS) // EVAL_EVERY:
             # ------------------------------Z-------------------------
                 metrics |= evaluate(policy, eval_envs, EVAL_SIZE, DEVICE)
 
             for name, value in metrics.items():
                 writer.add_scalar(name, value, steps)
             
-            pbar.set_postfix(reward=f"{metrics['training/episode reward']:.2f}", winrate=f"{metrics['training/winrate over last 100 episodes']:.2f}")
+            pbar.set_postfix(reward=f"{metrics['training/episode return']:.2f}", winrate=f"{metrics['training/winrate over last 100 episodes']:.2f}")
 
             # ------------------------------Z-------------------------
-            if steps // SAVE_EVERY > (steps - BUFFER_SIZE * N_ENVS) // SAVE_EVERY or update == N_UPDATES:
+            if steps // SAVE_EVERY > (steps - N_STEPS * N_ENVS) // SAVE_EVERY or update == N_UPDATES:
             # ------------------------------Z-------------------------
                 os.makedirs(os.path.join("checkpoints", PATH, HPARAM_PATH), exist_ok=True)
                 torch.save(policy.state_dict(), os.path.join("checkpoints", PATH, HPARAM_PATH, f"seed_{seed}.pt"))
@@ -163,7 +162,7 @@ def train(seed):
                             "scene"      : SCENE,
                             "seed"       : seed,
                             "n_envs"     : N_ENVS,
-                            "buffer size": BUFFER_SIZE
+                            "buffer size": N_STEPS
                             } | HPARAMS,
                             {
                             "greedy winrate": last_evaluation["eval/winrate"],

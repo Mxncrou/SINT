@@ -1,0 +1,11 @@
+scene: "protoss"
+device: "cpu"
+
+agent:
+  model: "Separated MLP Base"
+  algorithm: "IPPO"
+
+training:
+  n_envs: 8
+  n_steps: 400
+  seeds: [42, 67, 69]

@@ -29,34 +29,34 @@ def observation_split(observation_dim, n_actions):
 
 
 class SharedTransformer(nn.Module):
-    def __init__(self, observation_dim, n_actions, d, n_heads, pwffn):
+    def __init__(self, observation_dim, n_actions, d_model, n_heads, d_ff):
 
         super().__init__()
  
         self.observation_layout = observation_split(observation_dim, n_actions)
  
-        self.own_embedding     = layer_init(layer=nn.Linear(self.observation_layout["movement features"] + self.observation_layout["own features"], d), gain=1.0)
-        self.allies_embedding  = layer_init(layer=nn.Linear(self.observation_layout["units features"], d),                                              gain=1.0)
-        self.enemies_embedding = layer_init(layer=nn.Linear(self.observation_layout["units features"], d),                                              gain=1.0)
+        self.own_embedding     = layer_init(layer=nn.Linear(self.observation_layout["movement features"] + self.observation_layout["own features"], d_model), gain=1.0)
+        self.allies_embedding  = layer_init(layer=nn.Linear(self.observation_layout["units features"], d_model),                                              gain=1.0)
+        self.enemies_embedding = layer_init(layer=nn.Linear(self.observation_layout["units features"], d_model),                                              gain=1.0)
  
-        self.attention_norm_1 = nn.LayerNorm(d)
-        self.attention_1      = nn.MultiheadAttention(d, n_heads, batch_first=True)
-        self.pwffn_1          = nn.Sequential(nn.LayerNorm(d),
-                                              layer_init(layer=nn.Linear(d, pwffn), gain=np.sqrt(2)),
+        self.attention_norm_1 = nn.LayerNorm(d_model)
+        self.attention_1      = nn.MultiheadAttention(d_model, n_heads, batch_first=True)
+        self.ffn_1            = nn.Sequential(nn.LayerNorm(d_model),
+                                              layer_init(layer=nn.Linear(d_model, d_ff), gain=np.sqrt(2)),
                                               nn.ReLU(),
-                                              layer_init(layer=nn.Linear(pwffn, d), gain=1.0))
+                                              layer_init(layer=nn.Linear(d_ff, d_model), gain=1.0))
  
-        self.attention_norm_2 = nn.LayerNorm(d)
-        self.attention_2      = nn.MultiheadAttention(d, n_heads, batch_first=True)
-        self.pwffn_2          = nn.Sequential(nn.LayerNorm(d),
-                                              layer_init(layer=nn.Linear(d, pwffn), gain=np.sqrt(2)),
+        self.attention_norm_2 = nn.LayerNorm(d_model)
+        self.attention_2      = nn.MultiheadAttention(d_model, n_heads, batch_first=True)
+        self.ffn_2            = nn.Sequential(nn.LayerNorm(d_model),
+                                              layer_init(layer=nn.Linear(d_model, d_ff), gain=np.sqrt(2)),
                                               nn.ReLU(),
-                                              layer_init(layer=nn.Linear(pwffn, d), gain=1.0))
+                                              layer_init(layer=nn.Linear(d_ff, d_model), gain=1.0))
  
-        self.output_norm        = nn.LayerNorm(d)
-        self.actor_move         = layer_init(layer=nn.Linear(d, 6), gain=0.01)
-        self.actor_attack       = layer_init(layer=nn.Linear(d, 1), gain=0.01)
-        self.critic             = layer_init(layer=nn.Linear(d, 1), gain=1.0)
+        self.output_norm        = nn.LayerNorm(d_model)
+        self.actor_move         = layer_init(layer=nn.Linear(d_model, 6), gain=0.01)
+        self.actor_attack       = layer_init(layer=nn.Linear(d_model, 1), gain=0.01)
+        self.critic             = layer_init(layer=nn.Linear(d_model, 1), gain=1.0)
 
 
     def forward(self, o, available_actions):
@@ -92,11 +92,11 @@ class SharedTransformer(nn.Module):
  
         h = self.attention_norm_1(x)
         x = x + self.attention_1(h, h, h, key_padding_mask=mask, need_weights=False)[0]
-        x = x + self.pwffn_1(x)
+        x = x + self.ffn_1(x)
  
         h = self.attention_norm_2(x)
         x = x + self.attention_2(h, h, h, key_padding_mask=mask, need_weights=False)[0]
-        x = x + self.pwffn_2(x)
+        x = x + self.ffn_2(x)
  
         me      = self.output_norm(x[:, 0])
         enemies = self.output_norm(x[:, 1 : 1 + n_enemies])
@@ -110,17 +110,17 @@ class SharedTransformer(nn.Module):
 
 class SharedTransformerMini(SharedTransformer):
     def __init__(self, observation_dim, n_actions):
-        super().__init__(observation_dim, n_actions, d=48, n_heads=3, pwffn=120)
+        super().__init__(observation_dim, n_actions, d=48, n_heads=3, d_ff=120)
 
 
 class SharedTransformerBase(SharedTransformer):
     def __init__(self, observation_dim, n_actions):
-        super().__init__(observation_dim, n_actions, d=64, n_heads=4, pwffn=152)
+        super().__init__(observation_dim, n_actions, d=64, n_heads=4, d_ff=152)
 
 
 class SharedTransformerLarge(SharedTransformer):
     def __init__(self, observation_dim, n_actions):
-        super().__init__(observation_dim, n_actions, d=96, n_heads=6, pwffn=192)
+        super().__init__(observation_dim, n_actions, d=96, n_heads=6, d_ff=192)
 
 
 def lookup_actor_params(model):

@@ -4,8 +4,8 @@ Hparams:
   max_grad_norm: 10
   gamma: 0.99
   lam: 0.95
-  epsilon: 0.1
+  clip_epsilon: 0.1
   c_1: 0.5
   c_2: 0.01
   epochs: 10
-  n_minibatches: 1
+  minibatches_size: 1

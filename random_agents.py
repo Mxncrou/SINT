@@ -3,8 +3,11 @@ from __future__ import absolute_import, division, print_function
 # from os import replace
 import os
 import time
-
-os.environ["SDL_VIDEODRIVER"] = "x11"
+# ------------------------------Z-------------------------
+from pysc2.lib import remote_controller as rc
+_step = rc.RemoteController.step
+rc.RemoteController.step = lambda self, count=1: [(_step(self, 1), time.sleep(1 / 22.4)) for _ in range(count)]
+# ------------------------------Z-------------------------
 
 import numpy as np
 from absl import logging
@@ -77,7 +80,6 @@ def main():
                 actions.append(action)
 
             reward, terminated, _ = env.step(actions)
-            time.sleep(0.15)
             episode_reward += reward
 
         print(f"Total reward in episode {e} = {episode_reward}")

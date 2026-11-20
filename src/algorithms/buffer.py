@@ -24,7 +24,7 @@ class RolloutBuffer:
         self.terminated        = np.zeros((T, E),               np.bool)
         self.truncated         = np.zeros((T, E),               np.bool)
 
-        self.alives            = np.zeros((T, E, N),            np.bool)
+        self.alive             = np.zeros((T, E, N),            np.bool)
 
         # internal variables
         self.n_steps = T
